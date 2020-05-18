@@ -13,7 +13,7 @@ const isProcessRunning = function(processName: string): boolean {
   })();
   const results = require("child_process").execSync(cmd, {
     windowsHide: true,
-    encoding: "utf-8"
+    encoding: "utf-8",
   });
   return results.toLowerCase().indexOf(processName.toLowerCase()) > -1;
 };
@@ -44,24 +44,6 @@ export const getNodeDataPath = function(floonet: boolean = false): string {
 
 export const getConfigFilePath = function(floonet: boolean = false): string {
   return `${getNodeDataPath(floonet)}/server_config.json`;
-};
-
-export const updateSettings = function(
-  file: string,
-  property: "MIN_PEERS" | "MAX_PEERS" | "MIN_CONFIRMATIONS" | undefined,
-  value: number
-): void {
-  if (!property) return;
-  const fs = require("fs");
-  const data = fs.readFileSync(file, "utf8");
-  let settings = JSON.parse(data);
-  if (["MIN_PEERS", "MAX_PEERS"].includes(property)) {
-    if (!settings["P2P"]) settings["P2P"] = {};
-    settings["P2P"][property] = value;
-  } else if (property === "MIN_CONFIRMATIONS") {
-    settings["WALLET"]["MIN_CONFIRMATIONS"] = value;
-  }
-  fs.writeFileSync(file, JSON.stringify(settings));
 };
 
 export const getCommand = function(): string {
@@ -116,7 +98,7 @@ export const runNode = function(
     encoding: "utf-8",
     detached: true,
     shell: false,
-    cwd: absolutePath
+    cwd: absolutePath,
   });
 };
 
@@ -127,9 +109,7 @@ export const isNodeRunning = function(): boolean {
 export const stopNode = function(): void {
   try {
     killProcess(getCommand());
-  } catch (e) {
-    
-  }
+  } catch (e) {}
 };
 
 export const getDefaultSettings = function(
@@ -181,9 +161,9 @@ export const getDefaultSettings = function(
       node: defaults.ports.node,
       foreignRPC: defaults.ports.foreignRPC,
       owner: defaults.ports.owner,
-      ownerRPC: defaults.ports.ownerRPC
+      ownerRPC: defaults.ports.ownerRPC,
     },
-    grinJoinAddress: defaults.grinJoinAddress
+    grinJoinAddress: defaults.grinJoinAddress,
   };
 };
 

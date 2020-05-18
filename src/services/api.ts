@@ -48,7 +48,9 @@ export class BaseApi {
     return this.isMainnet() ? port : 10000 + port;
   }
 
-  protected getURL(api: "node" | "foreignRPC" | "owner" | "ownerRPC"): string {
+  protected getURL(
+    api: "node" | "foreignRPC" | "owner" | "ownerRPC" | "nodeRPC"
+  ): string {
     let port = -1;
     let version = "";
     switch (api) {
@@ -66,7 +68,11 @@ export class BaseApi {
         break;
       case "ownerRPC":
         port = this._ports.ownerRPC;
-        version = "v2";
+        version = "v2/owner";
+        break;
+      case "nodeRPC":
+        port = this._ports.node;
+        version = "v2/owner";
         break;
     }
     return `${this._protocol}://${this._ip}:${port}/${version}`;
@@ -76,8 +82,8 @@ export class BaseApi {
     return this.getURL("node");
   }
 
-  private _getForeignRPCURL(): string {
-    return this.getURL("foreignRPC");
+  private _getNodeRPCURL(): string {
+    return this.getURL("nodeRPC");
   }
 
   private _getOwnerURL(): string {
@@ -113,6 +119,7 @@ export class BaseApi {
       | "get_seed"
       | "list_txs"
       | "delete_wallet"
+      | "update_settings"
   ): string {
     switch (call) {
       case "node_status":
@@ -155,6 +162,8 @@ export class BaseApi {
         return this._getOwnerRPCURL();
       case "repost_tx":
         return this._getOwnerRPCURL();
+      case "update_settings":
+        return this._getOwnerRPCURL();
       case "scan_outputs":
         return `${this._getOwnerURL()}/update_wallet`;
       case "retrieve_outputs":
@@ -182,7 +191,7 @@ export class BaseApi {
       headers: headers,
       agent: false,
       encoding: "utf-8",
-      body: JSON.stringify(body)
+      body: JSON.stringify(body),
     };
 
     if (method.toLowerCase() === "get") {
@@ -221,14 +230,14 @@ export class BaseApi {
       agent: false,
       pool: { maxSockets: 5 },
       headers: {
-        Accept: "application/json, text/plain, */*"
+        Accept: "application/json, text/plain, */*",
       },
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: uuidv4(),
         method: method,
-        params: params
-      })
+        params: params,
+      }),
     };
     return new Promise((resolve, reject) => {
       request.post(options, (error: string, response: {}, body: string) => {

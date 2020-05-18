@@ -51,9 +51,9 @@ const settings: SettingsModel = {
       node: 3413,
       foreignRPC: 3415,
       owner: 3420,
-      ownerRPC: 3421
+      ownerRPC: 3421,
     },
-    grinJoinAddress: "grinjoin5pzzisnne3naxx4w2knwxsyamqmzfnzywnzdk7ra766u7vid"
+    grinJoinAddress: "grinjoin5pzzisnne3naxx4w2knwxsyamqmzfnzywnzdk7ra766u7vid",
   },
   mininumPeers: 15,
   maximumPeers: 50,
@@ -87,45 +87,56 @@ const settings: SettingsModel = {
   setGrinJoinAddress: action((state, payload) => {
     state.grinJoinAddress = payload;
   }),
-  toggleConfirmationDialog: action(state => {
+  toggleConfirmationDialog: action((state) => {
     state.isConfirmationDialogOpen = !state.isConfirmationDialogOpen;
   }),
   onSettingsChanged: thunkOn(
     (actions, storeActions) => [
       storeActions.settings.setMininumPeers,
       storeActions.settings.setMaximumPeers,
-      storeActions.settings.setConfirmations
+      storeActions.settings.setConfirmations,
     ],
-    (actions, target, { injections }) => {
-      const configFile = injections.nodeService.getConfigFilePath();
-      let property:
-        | "MIN_PEERS"
-        | "MAX_PEERS"
-        | "MIN_CONFIRMATIONS"
-        | undefined = undefined;
+    async (actions, target, { injections, getStoreState }) => {
+      let key: "MIN_PEERS" | "MAX_PEERS" | "MIN_CONFIRMATIONS" | "" = "";
       const [
         setMininumPeers,
         setMaximumPeers,
-        setConfirmations
+        setConfirmations,
       ] = target.resolvedTargets;
       switch (target.type) {
         case setMininumPeers:
-          property = "MIN_PEERS";
+          key = "MIN_PEERS";
           break;
         case setMaximumPeers:
-          property = "MAX_PEERS";
+          key = "MAX_PEERS";
           break;
         case setConfirmations:
-          property = "MIN_CONFIRMATIONS";
+          key = "MIN_CONFIRMATIONS";
           break;
       }
-      injections.nodeService.updateSettings(
-        configFile,
-        property,
-        target.payload
-      );
+      const { ownerService } = injections;
+      const apiSettings = getStoreState().settings.defaultSettings;
+      try {
+        require("electron-log").info(`Trying to Update Settings: ${key}`);
+        if (
+          await new ownerService.RPC(
+            apiSettings.floonet,
+            apiSettings.protocol,
+            apiSettings.ip,
+            apiSettings.mode
+          ).updateSettings(key.toString(), target.payload.toString())
+        ) {
+          require("electron-log").info(`Setting updated properly: ${key}`);
+        } else {
+          require("electron-log").error(`Setting was not updated: ${key}`);
+        }
+      } catch (error) {
+        require("electron-log").error(
+          `Error trying to Update Settings: ${error.message}`
+        );
+      }
     }
-  )
+  ),
 };
 
 export default settings;

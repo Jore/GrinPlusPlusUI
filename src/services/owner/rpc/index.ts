@@ -343,4 +343,15 @@ export class OwnerRPCApi extends BaseApi {
       return response.result;
     });
   }
+
+  public async updateSettings(key: string, value: string): Promise<boolean> {
+    return await this.makeRPCRequest(
+      this.getRequestURL("update_settings"),
+      "update_settings",
+      { key: value }
+    ).then((response) => {
+      if (response.error) throw new Error(response.error.message);
+      return response.result[key] === value;
+    });
+  }
 }
