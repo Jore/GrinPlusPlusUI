@@ -163,7 +163,7 @@ export class BaseApi {
       case "repost_tx":
         return this._getOwnerRPCURL();
       case "update_settings":
-        return this._getOwnerRPCURL();
+        return this._getNodeRPCURL();
       case "scan_outputs":
         return `${this._getOwnerURL()}/update_wallet`;
       case "retrieve_outputs":
